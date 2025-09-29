@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conection - Painel Drive</title>
+<style>
+  :root{--bg:#0b0f0b;--panel:#0f2618;--accent:#2ecc71;--muted:#9aa19a;}
+  body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:#e6eee6;display:flex;justify-content:center;align-items:center;height:100vh;}
+  .card{background:var(--panel);padding:32px;border-radius:16px;max-width:500px;width:100%;box-shadow:0 10px 25px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:16px;}
+  h1{color:var(--accent);text-align:center;margin:0;}
+  input, button{padding:10px;border:none;border-radius:8px;width:100%;margin-top:8px;font-size:15px;}
+  input{background:rgba(255,255,255,0.04);color:#e6eee6;}
+  button{background:var(--accent);color:#03240f;font-weight:700;cursor:pointer;}
+  .help{font-size:13px;color:var(--muted);text-align:center;}
+  .error{color:#ff7b7b;}
+  #driveSection{display:none;flex-direction:column;gap:12px;}
+  ul{list-style:none;padding-left:0;}
+  ul li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+</style>
+</head>
+<body>
+<div class="card" id="loginCard">
+  <h1>Login</h1>
+  <input id="username" type="text" placeholder="Usuário">
+  <input id="password" type="password" placeholder="Senha">
+  <button id="loginBtn">Entrar</button>
+  <div id="msg" class="help"></div>
+</div>
+
+<div class="card" id="driveSection">
+  <h1>Painel de Repositório</h1>
+  <button id="logoutBtn">Sair</button>
+  <button id="driveRefresh">Atualizar Lista</button>
+  <ul id="driveFiles"></ul>
+</div>
+
+<script>
+// ====== CONFIGURAÇÃO API ======
+const DRIVE_API_KEY = 'AIzaSyDS0PtALxxlHIZ0Do519aF7dWAtJtwXX-c'; // <- cole aqui
+const DRIVE_FOLDER_ID = '1a0CFmRm8LKw4-9NvM_cUAeR4cVr38iEm'; // <- cole aqui
+
+// ====== LOGIN ======
+const loginBtn = document.getElementById('loginBtn');
+const msg = document.getElementById('msg');
+const loginCard = document.getElementById('loginCard');
+const driveSection = document.getElementById('driveSection');
+const logoutBtn = document.getElementById('logoutBtn');
+
+loginBtn.addEventListener('click',()=>{
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value;
+  if(user==='tecnico' && pass==='1234'){
+    localStorage.setItem('loggedIn','true');
+    msg.textContent='Login OK!';
+    showPanel();
+  } else {
+    msg.textContent='Usuário ou senha inválidos';
+    msg.className='help error';
+  }
+});
+
+logoutBtn.addEventListener('click',()=>{
+  localStorage.removeItem('loggedIn');
+  driveSection.style.display='none';
+  loginCard.style.display='flex';
+  msg.textContent='';
+});
+
+function showPanel(){
+  loginCard.style.display='none';
+  driveSection.style.display='flex';
+  loadDriveFiles();
+}
+
+if(localStorage.getItem('loggedIn')==='true') showPanel();
+
+// ====== FUNÇÃO GOOGLE DRIVE API ======
+async function loadDriveFiles(){
+  const q = `'${DRIVE_FOLDER_ID}' in parents`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,webViewLink)&pageSize=200&key=${DRIVE_API_KEY}`;
+  const ul = document.getElementById('driveFiles');
+  ul.innerHTML='Carregando...';
+  try{
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.error){ ul.innerHTML=`Erro: ${data.error.message}`; return; }
+    ul.innerHTML='';
+    if(!data.files.length){ ul.innerHTML='<li>Nenhum arquivo encontrado.</li>'; return; }
+    data.files.forEach(f=>{
+      const li = document.createElement('li');
+      const view = f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`;
+      const download = `https://drive.google.com/uc?export=download&id=${f.id}`;
+      li.innerHTML = `${f.name} — <a href="${view}" target="_blank">Abrir</a> | <a href="${download}" target="_blank">Baixar</a>`;
+      ul.appendChild(li);
+    });
+  }catch(err){ ul.innerHTML='Erro ao carregar arquivos.'; console.error(err); }
+}
+
+document.getElementById('driveRefresh').addEventListener('click', loadDriveFiles);
+</script>
+</body>
+</html>

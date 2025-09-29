@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conection - Painel Drive</title>
 <style>
@@ -17,10 +17,23 @@
   #driveSection{display:none;flex-direction:column;gap:12px;}
   ul{list-style:none;padding-left:0;}
   ul li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .empresa{text-align:center;color:#2ecc71;font-size:25px;margin-bottom:8px;}
+  a{
+    color:#2ecc71; 
+    text-decoration:none;
+    font-weight: 600;
+  }
+
+    a:hover{
+      color:cyan;
+      text-decoration: underline;
+    }
+     
 </style>
 </head>
 <body>
 <div class="card" id="loginCard">
+  <h2 class="empresa">Conection Soluções e Serviços.</h2>
   <h1>Login</h1>
   <input id="username" type="text" placeholder="Usuário">
   <input id="password" type="password" placeholder="Senha">
@@ -50,7 +63,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 loginBtn.addEventListener('click',()=>{
   const user = document.getElementById('username').value.trim();
   const pass = document.getElementById('password').value;
-  if(user==='tecnico' && pass==='1234'){
+  if(user==='tecnico' && pass==='Conection@123'){
     localStorage.setItem('loggedIn','true');
     msg.textContent='Login OK!';
     showPanel();
@@ -91,7 +104,7 @@ async function loadDriveFiles(){
       const li = document.createElement('li');
       const view = f.webViewLink || `https://drive.google.com/file/d/${f.id}/view`;
       const download = `https://drive.google.com/uc?export=download&id=${f.id}`;
-      li.innerHTML = `${f.name} — <a href="${view}" target="_blank">Abrir</a> | <a href="${download}" target="_blank">Baixar</a>`;
+      li.innerHTML = `${f.name} — <a href="${view}" target="_blank">Abrir</a>`; 
       ul.appendChild(li);
     });
   }catch(err){ ul.innerHTML='Erro ao carregar arquivos.'; console.error(err); }
